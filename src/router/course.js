@@ -127,9 +127,7 @@ router.post("/:id/like", async (req, res) => {
     }
 
     // Check if the student has already liked the course
-    if (
-      course.students.some((student) => student.studentId.equals(studentId))
-    ) {
+    if (course.likes.some((like) => like.studentId.equals(studentId))) {
       return res
         .status(400)
         .json({ error: "Student has already liked this course" });
@@ -139,13 +137,10 @@ router.post("/:id/like", async (req, res) => {
     course.likeCount += 1;
 
     // Add the student to the list of students who have liked the course
-    course.students.push({ studentId });
+    course.likes.push({ studentId });
 
     // Save the updated course to the database
     const updatedCourse = await course.save();
-
-    // Broadcast the updated like count and student list to connected clients (real-time update)
-    // You may use a WebSocket library like socket.io for real-time communication
 
     // Return the updated course as a response
     res.status(200).json(updatedCourse);
@@ -170,8 +165,8 @@ router.post("/:id/unlike", async (req, res) => {
     }
 
     // Check if the student has liked the course
-    const likedIndex = course.students.findIndex((student) =>
-      student.studentId.equals(studentId)
+    const likedIndex = course.likes.findIndex((like) =>
+      like.studentId.equals(studentId)
     );
 
     if (likedIndex === -1) {
@@ -184,13 +179,10 @@ router.post("/:id/unlike", async (req, res) => {
     course.likeCount -= 1;
 
     // Remove the student from the list of students who have liked the course
-    course.students.splice(likedIndex, 1);
+    course.likes.splice(likedIndex, 1);
 
     // Save the updated course to the database
     const updatedCourse = await course.save();
-
-    // Broadcast the updated like count and student list to connected clients (real-time update)
-    // You may use a WebSocket library like socket.io for real-time communication
 
     // Return the updated course as a response
     res.status(200).json(updatedCourse);

@@ -9,6 +9,12 @@ const studentSchema = new mongoose.Schema({
       ref: 'Course',
     }
   ],
+  completedCourses: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Course',
+    }
+  ],
 });
 
 const Student = mongoose.model('Student', studentSchema);

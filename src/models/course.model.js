@@ -18,9 +18,20 @@ const courseSchema = new mongoose.Schema({
     }
   ],
   likeCount: { type: Number, default: 0 },
-  students: [
+  likes: [
     {
       studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student' },
+    }
+  ],
+  enrolledStudents: [
+    {
+      studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student' },
+    }
+  ],
+  completedBy: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Student',
     }
   ],
 });
