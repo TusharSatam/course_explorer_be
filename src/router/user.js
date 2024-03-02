@@ -33,6 +33,26 @@ router.post("/student", async (req, res) => {
   }
 });
 
+router.get("/get-student/:userId", async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    // Find the user by _id
+    const user = await Student.findById(userId);
+
+    // Check if the user exists
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Return the user information as a response
+    res.status(200).json(user);
+  } catch (error) {
+    // Handle any errors
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 // GET endpoint to retrieve all students
 router.get("/students", async (req, res) => {
   try {
@@ -99,7 +119,7 @@ router.post("/:studentId/enroll/:courseId", async (req, res) => {
 });
 
 // PUT endpoint to mark a course as completed for a student
-router.put('/students/:studentId/markCompleted/:courseId', async (req, res) => {
+router.put("/students/:studentId/markCompleted/:courseId", async (req, res) => {
   try {
     const studentId = req.params.studentId;
     const courseId = req.params.courseId;
@@ -109,17 +129,23 @@ router.put('/students/:studentId/markCompleted/:courseId', async (req, res) => {
 
     // Check if the student exists
     if (!student) {
-      return res.status(404).json({ error: 'Student not found' });
+      return res.status(404).json({ error: "Student not found" });
     }
 
     // Check if the student is enrolled in the course
     if (!student.enrolledCourses.includes(courseId)) {
-      return res.status(400).json({ error: 'Student is not enrolled in this course' });
+      return res
+        .status(400)
+        .json({ error: "Student is not enrolled in this course" });
     }
 
     // Check if the course is already marked as completed for the student
     if (student.completedCourses.includes(courseId)) {
-      return res.status(400).json({ error: 'Course is already marked as completed for this student' });
+      return res
+        .status(400)
+        .json({
+          error: "Course is already marked as completed for this student",
+        });
     }
 
     // Mark the course as completed for the student
@@ -138,52 +164,60 @@ router.put('/students/:studentId/markCompleted/:courseId', async (req, res) => {
   } catch (error) {
     // Handle any errors
     console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 // PUT endpoint to unmark a course as completed for a student
-router.put('/students/:studentId/unmarkCompleted/:courseId', async (req, res) => {
-  try {
-    const studentId = req.params.studentId;
-    const courseId = req.params.courseId;
+router.put(
+  "/students/:studentId/unmarkCompleted/:courseId",
+  async (req, res) => {
+    try {
+      const studentId = req.params.studentId;
+      const courseId = req.params.courseId;
 
-    // Find the student by ID
-    const student = await Student.findById(studentId);
+      // Find the student by ID
+      const student = await Student.findById(studentId);
 
-    // Check if the student exists
-    if (!student) {
-      return res.status(404).json({ error: 'Student not found' });
+      // Check if the student exists
+      if (!student) {
+        return res.status(404).json({ error: "Student not found" });
+      }
+
+      // Check if the student is enrolled in the course
+      if (!student.enrolledCourses.includes(courseId)) {
+        return res
+          .status(400)
+          .json({ error: "Student is not enrolled in this course" });
+      }
+
+      // Check if the course is marked as completed for the student
+      if (!student.completedCourses.includes(courseId)) {
+        return res
+          .status(400)
+          .json({
+            error: "Course is not marked as completed for this student",
+          });
+      }
+
+      // Unmark the course as completed for the student
+      student.completedCourses.pull(courseId);
+
+      // Save the updated student to the database
+      const updatedStudent = await student.save();
+
+      // Remove the student from the list of completedBy in the Course model
+      const course = await Course.findById(courseId);
+      course.completedBy.pull(studentId);
+      await course.save();
+
+      // Return the updated student as a response
+      res.status(200).json(updatedStudent);
+    } catch (error) {
+      // Handle any errors
+      console.error(error);
+      res.status(500).json({ error: "Internal Server Error" });
     }
-
-    // Check if the student is enrolled in the course
-    if (!student.enrolledCourses.includes(courseId)) {
-      return res.status(400).json({ error: 'Student is not enrolled in this course' });
-    }
-
-    // Check if the course is marked as completed for the student
-    if (!student.completedCourses.includes(courseId)) {
-      return res.status(400).json({ error: 'Course is not marked as completed for this student' });
-    }
-
-    // Unmark the course as completed for the student
-    student.completedCourses.pull(courseId);
-
-    // Save the updated student to the database
-    const updatedStudent = await student.save();
-
-    // Remove the student from the list of completedBy in the Course model
-    const course = await Course.findById(courseId);
-    course.completedBy.pull(studentId);
-    await course.save();
-
-    // Return the updated student as a response
-    res.status(200).json(updatedStudent);
-  } catch (error) {
-    // Handle any errors
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
   }
-});
-
+);
 
 module.exports = router;
