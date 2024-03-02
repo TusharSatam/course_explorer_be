@@ -11,6 +11,14 @@ app.get("/",(req,res)=>{
     res.send("API is running...");
 })
 
+const allowedOrigins = [process.env.FRONTEND_URL, process.env.FRONTEND_URL1]
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  }),
+)
+app.options('*', cors())
 
 app.use('/api/course', require('./src/router/course'))
 app.use('/api/user', require('./src/router/user'))
