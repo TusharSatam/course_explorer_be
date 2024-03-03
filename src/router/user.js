@@ -141,11 +141,9 @@ router.put("/students/:studentId/markCompleted/:courseId", async (req, res) => {
 
     // Check if the course is already marked as completed for the student
     if (student.completedCourses.includes(courseId)) {
-      return res
-        .status(400)
-        .json({
-          error: "Course is already marked as completed for this student",
-        });
+      return res.status(400).json({
+        error: "Course is already marked as completed for this student",
+      });
     }
 
     // Mark the course as completed for the student
@@ -192,11 +190,9 @@ router.put(
 
       // Check if the course is marked as completed for the student
       if (!student.completedCourses.includes(courseId)) {
-        return res
-          .status(400)
-          .json({
-            error: "Course is not marked as completed for this student",
-          });
+        return res.status(400).json({
+          error: "Course is not marked as completed for this student",
+        });
       }
 
       // Unmark the course as completed for the student
@@ -219,5 +215,59 @@ router.put(
     }
   }
 );
+
+// Endpoint to get all enrolled courses and their details for a student
+router.get("/:studentId/enrolled-courses", async (req, res) => {
+  try {
+    const studentId = req.params.studentId;
+
+    // Find the student by ID
+    const student = await Student.findById(studentId).populate(
+      "enrolledCourses"
+    );
+
+    // Check if the student exists
+    if (!student) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+
+    // Extract enrolled courses details
+    const enrolledCoursesDetails = await Course.find({
+      _id: { $in: student.enrolledCourses.map((course) => course._id) },
+    });
+
+    res.status(200).json(enrolledCoursesDetails);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// Endpoint to get all completed courses and their details for a student
+router.get("/:studentId/completed-courses", async (req, res) => {
+  try {
+    const studentId = req.params.studentId;
+
+    // Find the student by ID
+    const student = await Student.findById(studentId).populate(
+      "completedCourses"
+    );
+
+    // Check if the student exists
+    if (!student) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+
+    // Extract completed courses details
+    const completedCoursesDetails = await Course.find({
+      _id: { $in: student.completedCourses.map((course) => course._id) },
+    });
+
+    res.status(200).json(completedCoursesDetails);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
 module.exports = router;
